@@ -1,70 +1,75 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-import { 
-  Upload, 
-  FileText, 
-  Download, 
-  Copy, 
-  Check, 
-  Zap, 
-  Brain,
+import {
+  Upload,
+  FileText,
+  Download,
+  Copy,
+  Check,
   Eye,
-  Settings,
   ChevronRight,
   Loader2,
-  Highlighter,
   ArrowLeft,
   Sparkles,
-  FileSearch,
   RefreshCw,
   CheckCircle,
-  BookOpen,
-  AlertCircle
+  Brain
 } from "lucide-react";
 
-// 设置 PDF.js worker
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// 缓存 pdfjs-dist 模块，避免重复加载
+let pdfjsLibCache: any = null;
+async function getPdfjsLib() {
+  if (pdfjsLibCache) return pdfjsLibCache;
+  const lib = await import("pdfjs-dist");
+  lib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  pdfjsLibCache = lib;
+  return lib;
 }
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"quick" | "deep">("quick");
-  const [copied, setCopied] = useState(false);
-  const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"preview" | "edit">("preview");
   const [uploadedFileName, setUploadedFileName] = useState<string>("");
   const [pdfTextContent, setPdfTextContent] = useState<string>("");
   const [pdfLoading, setPdfLoading] = useState(false);
-  
-  const pdfViewerRef = useRef<HTMLDivElement>(null);
-  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const pdfCanvasRef = useRef<HTMLDivElement>(null);
 
   // 当文件变化时，渲染 PDF
   useEffect(() => {
     if (file && markdown) {
-      renderPdf(file);
+      // 等待 DOM 渲染完成后再渲染 PDF
+      const timer = setTimeout(() => {
+        renderPdf(file);
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [file, markdown]);
 
   const renderPdf = async (pdfFile: File) => {
+    const container = pdfCanvasRef.current;
+    if (!container) {
+      console.warn("PDF container not ready, retrying...");
+      setTimeout(() => renderPdf(pdfFile), 200);
+      return;
+    }
+
     setPdfLoading(true);
     try {
+      // 确保 pdfjs-dist 已加载
+      const pdfjsLib = await getPdfjsLib();
       const arrayBuffer = await pdfFile.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
+
       let fullText = "";
       const numPages = pdf.numPages;
-      
-      // 渲染每一页
-      const container = pdfViewerRef.current;
-      if (container) {
-        container.innerHTML = '';
-      }
+
+      // 清空之前的 canvas（这个 div 完全由 JS 管理，不受 React 控制）
+      container.innerHTML = '';
       
       for (let i = 1; i <= Math.min(numPages, 20); i++) { // 最多渲染 20 页
         const page = await pdf.getPage(i);
@@ -88,10 +93,8 @@ export default function Home() {
             viewport: viewport
           }).promise;
         }
-        
-        if (container) {
-          container.appendChild(canvas);
-        }
+
+        container.appendChild(canvas);
         
         // 提取文本
         const textContent = await page.getTextContent();
@@ -117,6 +120,30 @@ export default function Home() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile && droppedFile.type === "application/pdf") {
+      setFile(droppedFile);
+      setMarkdown("");
+      setPdfTextContent("");
+    }
+  };
+
   const handleConvert = async () => {
     if (!file) return;
     
@@ -126,15 +153,28 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("mode", mode);
       
       const response = await fetch("/api/convert", {
         method: "POST",
         body: formData,
       });
-      
+
+      if (!response.ok) {
+        const text = await response.text();
+        let errorMsg = "转换失败";
+        try {
+          const errData = JSON.parse(text);
+          errorMsg = errData.error || errorMsg;
+        } catch {
+          errorMsg = `服务端错误 (${response.status}): ${text}`;
+        }
+        alert(errorMsg);
+        setMarkdown("");
+        return;
+      }
+
       const data = await response.json();
-      
+
       if (data.error) {
         alert("转换失败: " + data.error);
         setMarkdown("");
@@ -150,12 +190,6 @@ export default function Home() {
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(markdown);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleDownload = () => {
     const blob = new Blob([markdown], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
@@ -166,18 +200,20 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(markdown);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleReset = () => {
     setFile(null);
     setMarkdown("");
     setUploadedFileName("");
     setPdfTextContent("");
-    if (pdfViewerRef.current) {
-      pdfViewerRef.current.innerHTML = '';
+    if (pdfCanvasRef.current) {
+      pdfCanvasRef.current.innerHTML = '';
     }
-  };
-
-  const handleLineClick = (lineNumber: number) => {
-    setHighlightedLine(lineNumber);
   };
 
   return (
@@ -217,18 +253,18 @@ export default function Home() {
           {markdown && (
             <div className="flex items-center gap-3">
               <button
-                onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
-              >
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                <span className="font-medium">{copied ? "已复制" : "复制"}</span>
-              </button>
-              <button
                 onClick={handleDownload}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium"
               >
                 <Download className="w-4 h-4" />
                 下载 .md
+              </button>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                <span className="font-medium">{copied ? "已复制" : "复制"}</span>
               </button>
               <button
                 onClick={handleReset}
@@ -261,14 +297,23 @@ export default function Home() {
                   </span>
                 </h2>
                 <p className="text-gray-500 text-lg max-w-md mx-auto">
-                  智能解析论文、书籍，自动提取结构，一键导入你的知识库
+                  上传 PDF，自动转换为 Markdown，支持左右对照预览
                 </p>
               </div>
 
               {/* 上传区域 */}
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-xl opacity-20"></div>
-                <div className="relative border-2 border-dashed border-gray-300 rounded-3xl p-12 text-center hover:border-blue-400 hover:bg-white/50 transition-all cursor-pointer bg-white/70 backdrop-blur">
+                <div
+                  className={`relative border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer backdrop-blur ${
+                    isDragging
+                      ? "border-blue-500 bg-blue-50/70 ring-4 ring-blue-200"
+                      : "border-gray-300 hover:border-blue-400 hover:bg-white/50 bg-white/70"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   <input
                     type="file"
                     accept=".pdf"
@@ -300,42 +345,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 模式选择 */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <button
-                  onClick={() => setMode("quick")}
-                  className={`group p-6 rounded-2xl border-2 transition-all ${
-                    mode === "quick"
-                      ? "border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10"
-                      : "border-gray-200 hover:border-gray-300 bg-white/50"
-                  }`}
-                >
-                  <div className={`w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center transition-all ${
-                    mode === "quick" ? "bg-blue-500" : "bg-gray-100 group-hover:bg-gray-200"
-                  }`}>
-                    <Zap className={`w-7 h-7 ${mode === "quick" ? "text-white" : "text-gray-500"}`} />
-                  </div>
-                  <div className="font-semibold text-lg text-gray-900">快速转换</div>
-                  <div className="text-sm text-gray-500 mt-1">秒级转换，适合简单文档</div>
-                </button>
-                <button
-                  onClick={() => setMode("deep")}
-                  className={`group p-6 rounded-2xl border-2 transition-all ${
-                    mode === "deep"
-                      ? "border-purple-500 bg-purple-50 shadow-lg shadow-purple-500/10"
-                      : "border-gray-200 hover:border-gray-300 bg-white/50"
-                  }`}
-                >
-                  <div className={`w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center transition-all ${
-                    mode === "deep" ? "bg-purple-500" : "bg-gray-100 group-hover:bg-gray-200"
-                  }`}>
-                    <Brain className={`w-7 h-7 ${mode === "deep" ? "text-white" : "text-gray-500"}`} />
-                  </div>
-                  <div className="font-semibold text-lg text-gray-900">深度结构化</div>
-                  <div className="text-sm text-gray-500 mt-1">AI 介入，智能修复</div>
-                </button>
-              </div>
-
               {/* 转换按钮 */}
               <button
                 onClick={handleConvert}
@@ -354,31 +363,6 @@ export default function Home() {
                   </>
                 )}
               </button>
-
-              {/* Features */}
-              <div className="mt-12 grid grid-cols-3 gap-6 text-center">
-                <div className="p-4">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-100 flex items-center justify-center">
-                    <FileSearch className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="font-medium text-gray-900">智能解析</div>
-                  <div className="text-sm text-gray-500 mt-1">自动识别结构</div>
-                </div>
-                <div className="p-4">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-purple-100 flex items-center justify-center">
-                    <Eye className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="font-medium text-gray-900">视觉对照</div>
-                  <div className="text-sm text-gray-500 mt-1">原文高亮定位</div>
-                </div>
-                <div className="p-4">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-pink-100 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-pink-600" />
-                  </div>
-                  <div className="font-medium text-gray-900">一键入库</div>
-                  <div className="text-sm text-gray-500 mt-1">多平台导出</div>
-                </div>
-              </div>
             </div>
           </div>
         ) : (
@@ -396,56 +380,26 @@ export default function Home() {
                     <p className="text-xs text-gray-500">{uploadedFileName}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full">
-                  <Highlighter className="w-3 h-3" />
-                  点击右侧 Markdown 可高亮对应区域
-                </div>
               </div>
-              <div 
-                ref={pdfViewerRef}
-                className="flex-1 overflow-auto p-6 flex flex-col items-center"
-              >
+              <div className="flex-1 overflow-auto p-6 flex flex-col items-center">
                 {pdfLoading && (
                   <div className="flex items-center gap-2 text-gray-500">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     正在渲染 PDF...
                   </div>
                 )}
+                {/* 这个 div 完全交给原生 JS 操作，React 不会管理它的子元素 */}
+                <div ref={pdfCanvasRef} className="w-full flex flex-col items-center" />
               </div>
             </div>
 
             {/* 右侧：Markdown 编辑器 */}
             <div className="w-1/2 flex flex-col bg-white">
-              <div className="px-5 py-4 bg-white border-b border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                      <Eye className="w-4 h-4 text-green-600" />
-                    </div>
-                    <span className="font-semibold text-gray-800">Markdown</span>
+              <div className="px-5 py-4 bg-white border-b border-gray-200 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-green-600" />
                   </div>
-                  <div className="flex bg-gray-100 rounded-lg p-1">
-                    <button
-                      onClick={() => setActiveTab("preview")}
-                      className={`px-3 py-1.5 text-sm rounded-md transition-all ${
-                        activeTab === "preview" ? "bg-white shadow-sm font-medium" : ""
-                      }`}
-                    >
-                      预览
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("edit")}
-                      className={`px-3 py-1.5 text-sm rounded-md transition-all ${
-                        activeTab === "edit" ? "bg-white shadow-sm font-medium" : ""
-                      }`}
-                    >
-                      编辑
-                    </button>
-                  </div>
-                </div>
-                <button className="p-2 hover:bg-gray-100 rounded-lg">
-                  <Settings className="w-5 h-5 text-gray-500" />
-                </button>
+                  <span className="font-semibold text-gray-800">Markdown 预览</span>
               </div>
               
               <div className="flex-1 overflow-auto p-6">
@@ -453,12 +407,7 @@ export default function Home() {
                   {markdown.split("\n").map((line, index) => (
                     <div
                       key={index}
-                      onClick={() => handleLineClick(index + 1)}
-                      className={`py-0.5 px-2 -mx-2 rounded cursor-pointer transition-all ${
-                        highlightedLine === index + 1 
-                          ? "bg-yellow-100 ring-2 ring-yellow-400" 
-                          : "hover:bg-blue-50"
-                      }`}
+                      className="py-0.5 px-2 -mx-2 rounded"
                     >
                       {line.startsWith("# ") ? (
                         <h1 className="text-xl font-bold text-gray-900">{line.slice(2)}</h1>

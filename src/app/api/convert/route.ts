@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const mode = formData.get("mode") as string || "quick";
 
     if (!file) {
       return NextResponse.json({ error: "未找到文件" }, { status: 400 });
@@ -17,9 +16,7 @@ export async function POST(request: NextRequest) {
     const backendFormData = new FormData();
     backendFormData.append("file", file);
 
-    const endpoint = mode === "deep" ? "/convert/enhanced" : "/convert";
-    
-    const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+    const response = await fetch(`${BACKEND_URL}/convert`, {
       method: "POST",
       body: backendFormData,
     });
