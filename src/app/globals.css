@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Markdown 样式增强 */
+.prose {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* 高亮动画 */
+@keyframes highlight-pulse {
+  0%, 100% {
+    background-color: rgba(250, 204, 21, 0.3);
+  }
+  50% {
+    background-color: rgba(250, 204, 21, 0.6);
+  }
+}
+
+.highlight-pulse {
+  animation: highlight-pulse 1s ease-in-out;
+}
