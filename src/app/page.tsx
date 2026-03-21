@@ -154,7 +154,9 @@ export default function Home() {
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch("/api/convert", {
+      // 直接请求后端，不通过 Next.js API Route
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://jelsoft-intention-clarity-penalty.trycloudflare.com";
+      const response = await fetch(`${backendUrl}/convert`, {
         method: "POST",
         body: formData,
       });
