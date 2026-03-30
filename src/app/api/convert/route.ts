@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // 后端 API 地址
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://43.163.107.29:8000";
 
 export async function POST(request: NextRequest) {
   try {
