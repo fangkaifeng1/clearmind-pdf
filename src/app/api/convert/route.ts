@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 后端 API 地址
-const BACKEND_URL = process.env.BACKEND_URL || "http://43.163.107.29:8000";
+// 后端 API 地址（从环境变量读取，不暴露 IP）
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,12 +24,12 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     if (!data.success) {
-      return NextResponse.json({ 
-        error: data.error || "转换失败" 
+      return NextResponse.json({
+        error: data.error || "转换失败"
       }, { status: 500 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       markdown: data.markdown,
       filename: data.filename,
       size: data.size,
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("转换错误:", error);
-    return NextResponse.json({ 
-      error: "转换服务连接失败，请确保后端服务正在运行" 
+    return NextResponse.json({
+      error: "转换服务连接失败，请确保后端服务正在运行"
     }, { status: 500 });
   }
 }
