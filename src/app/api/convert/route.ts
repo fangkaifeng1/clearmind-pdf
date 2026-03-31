@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // 后端 API 地址（从环境变量读取，不暴露 IP）
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "https://api.clearmindpdf.com";
 
 export async function POST(request: NextRequest) {
   try {
