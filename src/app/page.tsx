@@ -155,7 +155,7 @@ export default function Home() {
       formData.append("file", file);
       
       // 直接请求后端，不通过 Next.js API Route
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://jelsoft-intention-clarity-penalty.trycloudflare.com";
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.clearmindpdf.com";
       const response = await fetch(`${backendUrl}/convert`, {
         method: "POST",
         body: formData,
