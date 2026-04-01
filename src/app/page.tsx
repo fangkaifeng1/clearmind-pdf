@@ -16,6 +16,8 @@ import {
   CheckCircle,
   Brain
 } from "lucide-react";
+import UserMenu from "@/components/UserMenu";
+import { authFetch, getToken } from "@/lib/auth";
 
 // 缓存 pdfjs-dist 模块，避免重复加载
 let pdfjsLibCache: any = null;
@@ -155,8 +157,8 @@ export default function Home() {
       formData.append("file", file);
       
       // 直接请求后端，不通过 Next.js API Route
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.clearmindpdf.com";
-      const response = await fetch(`${backendUrl}/convert`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://43.163.107.29:8000";
+      const response = await authFetch(`${backendUrl}/convert`, {
         method: "POST",
         body: formData,
       });
@@ -252,9 +254,10 @@ export default function Home() {
             </div>
           </div>
           
-          {markdown && (
-            <div className="flex items-center gap-3">
-              <button
+          <div className="flex items-center gap-3">
+            {markdown && (
+              <>
+                <button
                 onClick={handleDownload}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium"
               >
@@ -275,8 +278,10 @@ export default function Home() {
                 <RefreshCw className="w-4 h-4" />
                 <span className="font-medium">重新上传</span>
               </button>
-            </div>
-          )}
+            </>
+            )}
+            <UserMenu />
+          </div>
         </div>
       </header>
 
