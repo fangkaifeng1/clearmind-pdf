@@ -1,6 +1,6 @@
 // 认证工具函数
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://43.163.107.29:8000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.clearmindpdf.com";
 
 export interface User {
   id: string;
