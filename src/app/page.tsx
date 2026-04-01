@@ -17,7 +17,8 @@ import {
   Brain
 } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
-import { authFetch, getToken } from "@/lib/auth";
+import { authFetch, getToken, loginWithGoogle } from "@/lib/auth";
+import { ToastProvider, useToast } from "@/components/Toast";
 
 // 缓存 pdfjs-dist 模块，避免重复加载
 let pdfjsLibCache: any = null;
@@ -30,6 +31,25 @@ async function getPdfjsLib() {
 }
 
 export default function Home() {
+  // Toast通知
+  const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
+    // 创建Toast元素
+    const toast = document.createElement("div");
+    toast.className = `fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white ${
+      type === "success" ? "bg-green-500" : type === "error" ? "bg-red-500" : "bg-blue-500"
+    } animate-in slide-in-from-right`;
+    toast.innerHTML = `
+      <span class="text-sm font-medium">${message}</span>
+      <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
+    `;
+    document.body.appendChild(toast);
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  };
+
   const [file, setFile] = useState<File | null>(null);
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(false);
@@ -115,8 +135,13 @@ export default function Home() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.type !== "application/pdf") {
+        showToast("请上传PDF文件", "error");
+        return;
+      }
+      setFile(selectedFile);
       setMarkdown("");
       setPdfTextContent("");
     }
@@ -143,11 +168,23 @@ export default function Home() {
       setFile(droppedFile);
       setMarkdown("");
       setPdfTextContent("");
+    } else {
+      showToast("请上传PDF文件", "error");
     }
   };
 
   const handleConvert = async () => {
     if (!file) return;
+    
+    // 检查是否已登录
+    const token = getToken();
+    if (!token) {
+      showToast("请先登录后再转换PDF", "error");
+      setTimeout(() => {
+        loginWithGoogle();
+      }, 1500);
+      return;
+    }
     
     setLoading(true);
     setUploadedFileName(file.name);
@@ -170,9 +207,19 @@ export default function Home() {
           const errData = JSON.parse(text);
           errorMsg = errData.error || errorMsg;
         } catch {
-          errorMsg = `服务端错误 (${response.status}): ${text}`;
+          errorMsg = `服务端错误 (${response.status})`;
         }
-        alert(errorMsg);
+        
+        // 特殊处理401错误
+        if (response.status === 401) {
+          showToast("登录已过期，请重新登录", "error");
+          setTimeout(() => {
+            loginWithGoogle();
+          }, 1500);
+        } else {
+          showToast(errorMsg, "error");
+        }
+        
         setMarkdown("");
         return;
       }
@@ -180,14 +227,15 @@ export default function Home() {
       const data = await response.json();
 
       if (data.error) {
-        alert("转换失败: " + data.error);
+        showToast("转换失败: " + data.error, "error");
         setMarkdown("");
       } else {
         setMarkdown(data.markdown);
+        showToast("转换成功！", "success");
       }
     } catch (error) {
       console.error("转换错误:", error);
-      alert("转换失败，请检查后端服务是否运行");
+      showToast("转换失败，请检查后端服务是否运行", "error");
       setMarkdown("");
     } finally {
       setLoading(false);
