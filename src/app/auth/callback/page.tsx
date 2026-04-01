@@ -9,26 +9,35 @@ export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    const errorMsg = urlParams.get("error");
+    // 客户端处理OAuth回调
+    const handleCallback = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      const errorMsg = urlParams.get("error");
 
-    if (errorMsg) {
-      setError(decodeURIComponent(errorMsg));
-      setTimeout(() => router.push("/"), 3000);
-      return;
-    }
+      if (errorMsg) {
+        setError(decodeURIComponent(errorMsg));
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 3000);
+        return;
+      }
 
-    if (token) {
-      // 保存token到localStorage
-      localStorage.setItem("auth_token", token);
-      // 跳转到首页
-      router.push("/");
-    } else {
-      setError("未收到认证token");
-      setTimeout(() => router.push("/"), 3000);
-    }
-  }, [router]);
+      if (token) {
+        // 保存token到localStorage
+        localStorage.setItem("auth_token", token);
+        // 跳转到首页
+        window.location.href = "/";
+      } else {
+        setError("未收到认证token");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 3000);
+      }
+    };
+
+    handleCallback();
+  }, []);
 
   if (error) {
     return (
