@@ -12,16 +12,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "未找到文件" }, { status: 400 });
     }
 
+    // 从请求头获取 token
+    const authHeader = request.headers.get("Authorization");
+    
     // 转发到 Python 后端
     const backendFormData = new FormData();
     backendFormData.append("file", file);
 
+    const headers: HeadersInit = {};
+    if (authHeader) {
+      headers["Authorization"] = authHeader;
+    }
+
     const response = await fetch(`${BACKEND_URL}/convert`, {
       method: "POST",
       body: backendFormData,
+      headers,
     });
 
     const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json({
+        error: data.detail || "转换失败"
+      }, { status: response.status });
+    }
 
     if (!data.success) {
       return NextResponse.json({
