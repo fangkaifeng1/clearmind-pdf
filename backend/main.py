@@ -13,6 +13,10 @@ from typing import Optional
 from contextlib import contextmanager
 from urllib.parse import urlencode
 
+# 加载 .env 文件
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -258,6 +262,10 @@ class GoogleAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # 记录请求开始
         request.state.start_time = datetime.now()
+        
+        # OPTIONS 请求直接放行（CORS 预检）
+        if request.method == "OPTIONS":
+            return await call_next(request)
         
         # 白名单路径 - 不需要认证
         whitelist_paths = [
