@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "ClearMind PDF - Free PDF to Markdown Converter | AI-Ready Notes",
@@ -54,13 +55,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <meta name="google-site-verification" content="your-google-verification-code" />
       </head>
       <body className="antialiased bg-gray-50" suppressHydrationWarning>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

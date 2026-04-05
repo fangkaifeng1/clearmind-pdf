@@ -1,4 +1,4 @@
-// 认证工具函数
+// Authentication utility functions
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.clearmindpdf.com";
 
@@ -9,30 +9,30 @@ export interface User {
   picture?: string;
 }
 
-// 获取存储的token
+// Get stored token
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("auth_token");
 }
 
-// 保存token
+// Save token
 export function setToken(token: string): void {
   if (typeof window === "undefined") return;
   localStorage.setItem("auth_token", token);
 }
 
-// 删除token
+// Remove token
 export function removeToken(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem("auth_token");
 }
 
-// 检查是否已登录
+// Check if authenticated
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
-// 获取当前用户信息
+// Get current user info
 export async function getCurrentUser(): Promise<User | null> {
   const token = getToken();
   if (!token) return null;
@@ -52,12 +52,12 @@ export async function getCurrentUser(): Promise<User | null> {
     const data = await response.json();
     return data.success ? data.user : null;
   } catch (error) {
-    console.error("获取用户信息失败:", error);
+    console.error("Failed to get user info:", error);
     return null;
   }
 }
 
-// 登出
+// Logout
 export async function logout(): Promise<void> {
   const token = getToken();
   if (token) {
@@ -69,18 +69,18 @@ export async function logout(): Promise<void> {
         },
       });
     } catch (error) {
-      console.error("登出失败:", error);
+      console.error("Logout failed:", error);
     }
   }
   removeToken();
 }
 
-// 跳转到Google登录
+// Redirect to Google login
 export function loginWithGoogle(): void {
   window.location.href = `${BACKEND_URL}/api/auth/google`;
 }
 
-// 带认证的fetch封装
+// Authenticated fetch wrapper
 export async function authFetch(
   url: string,
   options: RequestInit = {}
@@ -92,12 +92,20 @@ export async function authFetch(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
+  // Add client_id header for quota tracking
+  const clientId = typeof window !== "undefined"
+    ? localStorage.getItem("clearmind_client_id") || ""
+    : "";
+  if (clientId) {
+    headers.set("X-Client-ID", clientId);
+  }
+
   const response = await fetch(url, {
     ...options,
     headers,
   });
 
-  // 如果401，清除token
+  // If 401, clear token
   if (response.status === 401) {
     removeToken();
   }

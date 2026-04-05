@@ -18,6 +18,12 @@ import {
 } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
 import { authFetch, getToken, loginWithGoogle } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
+import LanguageToggle from "@/components/LanguageToggle";
+import CreditsDisplay from "@/components/CreditsDisplay";
+import QuotaExhaustedModal from "@/components/QuotaExhaustedModal";
+import PricingSection from "@/components/PricingSection";
+import { getClientId, fetchQuota, QuotaInfo } from "@/lib/quota";
 import { ToastProvider, useToast } from "@/components/Toast";
 
 // 缓存 pdfjs-dist 模块，避免重复加载
@@ -31,6 +37,7 @@ async function getPdfjsLib() {
 }
 
 export default function Home() {
+  const { t } = useI18n();
   // Toast通知
   const showToast = (message: string, type: "success" | "error" | "info" = "info") => {
     // 创建Toast元素
@@ -58,6 +65,8 @@ export default function Home() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
+  const [showQuotaModal, setShowQuotaModal] = useState(false);
 
   const pdfCanvasRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +80,13 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [file, markdown]);
+
+  useEffect(() => {
+    const loadQuota = async () => { setQuota(await fetchQuota()); };
+    loadQuota();
+    const iv = setInterval(loadQuota, 5000);
+    return () => clearInterval(iv);
+  }, []);
 
   const renderPdf = async (pdfFile: File) => {
     const container = pdfCanvasRef.current;
@@ -138,7 +154,7 @@ export default function Home() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.type !== "application/pdf") {
-        showToast("请上传PDF文件", "error");
+        showToast(t("upload_pdf_only"), "error");
         return;
       }
       setFile(selectedFile);
@@ -169,17 +185,22 @@ export default function Home() {
       setMarkdown("");
       setPdfTextContent("");
     } else {
-      showToast("请上传PDF文件", "error");
+      showToast(t("upload_pdf_only"), "error");
     }
   };
 
   const handleConvert = async () => {
     if (!file) return;
-    
+
+    if (quota && quota.remaining <= 0) {
+      setShowQuotaModal(true);
+      return;
+    }
+
     // 检查是否已登录
     const token = getToken();
     if (!token) {
-      showToast("请先登录后再转换PDF", "error");
+      showToast(t("login_required"), "error");
       setTimeout(() => {
         loginWithGoogle();
       }, 1500);
@@ -192,7 +213,8 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      
+      formData.append("client_id", getClientId());
+
       // 直接请求后端，不通过 Next.js API Route
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://43.163.107.29:8000";
       const response = await authFetch(`${backendUrl}/convert`, {
@@ -202,17 +224,17 @@ export default function Home() {
 
       if (!response.ok) {
         const text = await response.text();
-        let errorMsg = "转换失败";
+        let errorMsg = t("convert_failed");
         try {
           const errData = JSON.parse(text);
           errorMsg = errData.error || errorMsg;
         } catch {
-          errorMsg = `服务端错误 (${response.status})`;
+          errorMsg = t("server_error", { status: response.status });
         }
         
         // 特殊处理401错误
         if (response.status === 401) {
-          showToast("登录已过期，请重新登录", "error");
+          showToast(t("toast.expired"), "error");
           setTimeout(() => {
             loginWithGoogle();
           }, 1500);
@@ -227,15 +249,17 @@ export default function Home() {
       const data = await response.json();
 
       if (data.error) {
-        showToast("转换失败: " + data.error, "error");
+        showToast(t("convert_failed") + ": " + data.error, "error");
         setMarkdown("");
       } else {
         setMarkdown(data.markdown);
-        showToast("转换成功！", "success");
+        if (data.quota) setQuota(data.quota);
+        else setQuota(await fetchQuota());
+        showToast(t("toast.success"), "success");
       }
     } catch (error) {
       console.error("转换错误:", error);
-      showToast("转换失败，请检查后端服务是否运行", "error");
+      showToast(t("toast.backendDown"), "error");
       setMarkdown("");
     } finally {
       setLoading(false);
@@ -270,6 +294,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+      {showQuotaModal && quota && (
+        <QuotaExhaustedModal
+          quota={quota}
+          onClose={() => setShowQuotaModal(false)}
+          onSignIn={() => { setShowQuotaModal(false); loginWithGoogle(); }}
+        />
+      )}
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-6 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -278,7 +309,7 @@ export default function Home() {
               <button
                 onClick={handleReset}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                title="返回上传"
+                title={t("header.backToUpload")}
               >
                 <ArrowLeft className="w-5 h-5 text-gray-500" />
               </button>
@@ -296,7 +327,7 @@ export default function Home() {
                 </h1>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
-                  PDF → 结构化笔记
+                  {t("header.subtitle")}
                 </p>
               </div>
             </div>
@@ -310,24 +341,26 @@ export default function Home() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium"
               >
                 <Download className="w-4 h-4" />
-                下载 .md
+                {t("header.download")} .md
               </button>
               <button
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
               >
                 {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                <span className="font-medium">{copied ? "已复制" : "复制"}</span>
+                <span className="font-medium">{copied ? t("header.copied") : t("header.copy")}</span>
               </button>
               <button
                 onClick={handleReset}
                 className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span className="font-medium">重新上传</span>
+                <span className="font-medium">{t("header.new")}</span>
               </button>
             </>
             )}
+            <CreditsDisplay quota={quota} onSignIn={loginWithGoogle} />
+            <LanguageToggle />
             <UserMenu />
           </div>
         </div>
@@ -343,16 +376,16 @@ export default function Home() {
               <div className="text-center mb-12">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
                   <Sparkles className="w-4 h-4" />
-                  为 Obsidian / Notion 用户打造
+                  {t("hero.badge")}
                 </div>
                 <h2 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                  将 PDF 转换为<br />
+                  {t("hero.title1")}<br />
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    结构化笔记
+                    {t("hero.title2")}
                   </span>
                 </h2>
                 <p className="text-gray-500 text-lg max-w-md mx-auto">
-                  上传 PDF，自动转换为 Markdown，支持左右对照预览
+                  {t("hero.desc")}
                 </p>
               </div>
 
@@ -392,8 +425,8 @@ export default function Home() {
                       </div>
                     ) : (
                       <div>
-                        <span className="text-xl font-medium text-gray-700">点击上传 PDF</span>
-                        <p className="text-gray-400 mt-2">或拖拽文件到此处</p>
+                        <span className="text-xl font-medium text-gray-700">{t("upload.drop")}</span>
+                        <p className="text-gray-400 mt-2">{t("upload.dropSub")}</p>
                       </div>
                     )}
                   </label>
@@ -409,15 +442,17 @@ export default function Home() {
                 {loading ? (
                   <>
                     <Loader2 className="w-6 h-6 animate-spin" />
-                    转换中...
+                    {t("upload.converting")}
                   </>
                 ) : (
                   <>
-                    开始转换
+                    {t("upload.convert")}
                     <ChevronRight className="w-6 h-6" />
                   </>
                 )}
               </button>
+
+              <PricingSection />
             </div>
           </div>
         ) : (
@@ -431,7 +466,7 @@ export default function Home() {
                     <FileText className="w-4 h-4 text-red-600" />
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-800">PDF 原文</span>
+                    <span className="font-semibold text-gray-800">{t("result.pdfOriginal")}</span>
                     <p className="text-xs text-gray-500">{uploadedFileName}</p>
                   </div>
                 </div>
@@ -440,7 +475,7 @@ export default function Home() {
                 {pdfLoading && (
                   <div className="flex items-center gap-2 text-gray-500">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    正在渲染 PDF...
+                    {t("result.rendering")}
                   </div>
                 )}
                 {/* 这个 div 完全交给原生 JS 操作，React 不会管理它的子元素 */}
@@ -454,7 +489,7 @@ export default function Home() {
                   <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                     <Eye className="w-4 h-4 text-green-600" />
                   </div>
-                  <span className="font-semibold text-gray-800">Markdown 预览</span>
+                  <span className="font-semibold text-gray-800">{t("result.markdownPreview")}</span>
               </div>
               
               <div className="flex-1 overflow-auto p-6">
