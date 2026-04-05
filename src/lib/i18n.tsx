@@ -84,6 +84,8 @@ const translations: Record<Lang, Record<string, string>> = {
     "pricing.getCta": "Get Started",
     "pricing.signInCta": "Sign in Free",
     "pricing.proCta": "Coming Soon",
+    "pricing.subscribeNow": "Subscribe Now",
+    "pricing.cancelAnytime": "Cancel anytime",
 
     // Credits
     "credits.label": "credits",
@@ -102,6 +104,19 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Footer
     "footer.copy": "ClearMind PDF. Free to use. No files stored.",
+    "footer.brandDesc": "Transform your PDFs into clean, structured Markdown. Built for researchers, writers, and knowledge workers who value clarity and efficiency.",
+    "footer.product": "Product",
+    "footer.features": "Features",
+    "footer.pricing": "Pricing",
+    "footer.apiDocs": "API Docs",
+    "footer.changelog": "Changelog",
+    "footer.support": "Support",
+    "footer.helpCenter": "Help Center",
+    "footer.contactUs": "Contact Us",
+    "footer.privacy": "Privacy Policy",
+    "footer.terms": "Terms of Service",
+    "footer.rights": "All rights reserved.",
+    "footer.allSystemsNormal": "All systems operational",
 
     // User menu
     "user.signIn": "Sign in",
@@ -209,6 +224,8 @@ const translations: Record<Lang, Record<string, string>> = {
     "pricing.getCta": "开始使用",
     "pricing.signInCta": "免费登录",
     "pricing.proCta": "即将推出",
+    "pricing.subscribeNow": "立即订阅",
+    "pricing.cancelAnytime": "随时可取消",
 
     // Credits
     "credits.label": "额度",
@@ -227,6 +244,19 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Footer
     "footer.copy": "ClearMind PDF。免费使用。文件不存储。",
+    "footer.brandDesc": "将 PDF 转换为整洁、结构化的 Markdown。专为研究人员、写作爱好者和知识工作者打造。",
+    "footer.product": "产品",
+    "footer.features": "功能特性",
+    "footer.pricing": "定价方案",
+    "footer.apiDocs": "API 文档",
+    "footer.changelog": "更新日志",
+    "footer.support": "支持",
+    "footer.helpCenter": "帮助中心",
+    "footer.contactUs": "联系我们",
+    "footer.privacy": "隐私政策",
+    "footer.terms": "服务条款",
+    "footer.rights": "保留所有权利。",
+    "footer.allSystemsNormal": "所有系统运行正常",
 
     // User menu
     "user.signIn": "登录",

@@ -14,7 +14,17 @@ import {
   Sparkles,
   RefreshCw,
   CheckCircle,
-  Brain
+  Brain,
+  Shield,
+  Zap,
+  Monitor,
+  Trash2,
+  ArrowRight,
+  FileOutput,
+  Type,
+  LayoutGrid,
+  Lock,
+  Clock
 } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
 import { authFetch, getToken, loginWithGoogle } from "@/lib/auth";
@@ -23,6 +33,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import CreditsDisplay from "@/components/CreditsDisplay";
 import QuotaExhaustedModal from "@/components/QuotaExhaustedModal";
 import PricingSection from "@/components/PricingSection";
+import Footer from "@/components/Footer";
 import { getClientId, fetchQuota, QuotaInfo } from "@/lib/quota";
 import { ToastProvider, useToast } from "@/components/Toast";
 
@@ -225,14 +236,25 @@ export default function Home() {
       if (!response.ok) {
         const text = await response.text();
         let errorMsg = t("convert_failed");
+        let quotaData = null;
         try {
           const errData = JSON.parse(text);
           errorMsg = errData.error || errorMsg;
+          quotaData = errData.quota || null;
         } catch {
           errorMsg = t("server_error", { status: response.status });
         }
-        
-        // 特殊处理401错误
+
+        // Handle 429 quota exceeded
+        if (response.status === 429) {
+          if (quotaData) setQuota(quotaData);
+          else setQuota(await fetchQuota());
+          setShowQuotaModal(true);
+          setMarkdown("");
+          return;
+        }
+
+        // Handle 401 expired
         if (response.status === 401) {
           showToast(t("toast.expired"), "error");
           setTimeout(() => {
@@ -241,7 +263,7 @@ export default function Home() {
         } else {
           showToast(errorMsg, "error");
         }
-        
+
         setMarkdown("");
         return;
       }
@@ -367,94 +389,221 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex">
+      <main className="flex-1 flex flex-col">
         {!markdown ? (
-          /* 上传界面 */
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="w-full max-w-2xl">
-              {/* Hero Section */}
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
-                  <Sparkles className="w-4 h-4" />
-                  {t("hero.badge")}
-                </div>
-                <h2 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                  {t("hero.title1")}<br />
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {t("hero.title2")}
-                  </span>
-                </h2>
-                <p className="text-gray-500 text-lg max-w-md mx-auto">
-                  {t("hero.desc")}
-                </p>
+          /* 上传界面 - Landing Page */
+          <>
+            {/* Hero Section */}
+            <section className="relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute inset-0 -z-10">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/20 to-purple-100/20 rounded-full blur-3xl"></div>
               </div>
 
-              {/* 上传区域 */}
-              <div className="relative mb-8">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-xl opacity-20"></div>
-                <div
-                  className={`relative border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer backdrop-blur ${
-                    isDragging
-                      ? "border-blue-500 bg-blue-50/70 ring-4 ring-blue-200"
-                      : "border-gray-300 hover:border-blue-400 hover:bg-white/50 bg-white/70"
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                      <Upload className="w-10 h-10 text-blue-500" />
+              <div className="max-w-4xl mx-auto px-6 pt-20 pb-16">
+                <div className="text-center mb-10">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100/80 text-blue-700 rounded-full text-sm font-medium mb-6 backdrop-blur">
+                    <Sparkles className="w-4 h-4" />
+                    {t("hero.badge")}
+                  </div>
+                  <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-5 leading-tight tracking-tight">
+                    {t("hero.title1")}<br />
+                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      {t("hero.title2")}
+                    </span>
+                  </h2>
+                  <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
+                    {t("hero.desc")}
+                  </p>
+                </div>
+
+                {/* Trust badges */}
+                <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
+                  {[
+                    { icon: Shield, label: t("trust.secure") },
+                    { icon: Clock, label: t("trust.seconds") },
+                    { icon: Monitor, label: t("trust.device") },
+                    { icon: Trash2, label: t("trust.storage") },
+                  ].map((badge) => (
+                    <div key={badge.label} className="flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur border border-gray-100 rounded-full text-xs font-medium text-gray-600">
+                      <badge.icon className="w-3.5 h-3.5 text-blue-500" />
+                      {badge.label}
                     </div>
-                    {file ? (
-                      <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-xl font-medium">
-                          <CheckCircle className="w-5 h-5" />
-                          {file.name}
+                  ))}
+                </div>
+
+                {/* Upload area */}
+                <div className="relative mb-6 max-w-2xl mx-auto">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-xl opacity-20"></div>
+                  <div
+                    className={`relative border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer backdrop-blur ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-50/70 ring-4 ring-blue-200"
+                        : "border-gray-300 hover:border-blue-400 hover:bg-white/50 bg-white/70"
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                        <Upload className="w-10 h-10 text-blue-500" />
+                      </div>
+                      {file ? (
+                        <div className="space-y-2">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-xl font-medium">
+                            <CheckCircle className="w-5 h-5" />
+                            {file.name}
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            {(file.size / 1024).toFixed(1)} KB
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-500">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </p>
-                      </div>
+                      ) : (
+                        <div>
+                          <span className="text-xl font-medium text-gray-700">{t("upload.drop")}</span>
+                          <p className="text-gray-400 mt-2">{t("upload.dropSub")}</p>
+                          <p className="text-xs text-gray-300 mt-3">{t("upload.formats")}</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                {/* Convert button */}
+                <div className="max-w-2xl mx-auto mb-6">
+                  <button
+                    onClick={handleConvert}
+                    disabled={!file || loading}
+                    className="w-full py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl font-semibold text-lg hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all flex items-center justify-center gap-3"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        {t("upload.converting")}
+                      </>
                     ) : (
-                      <div>
-                        <span className="text-xl font-medium text-gray-700">{t("upload.drop")}</span>
-                        <p className="text-gray-400 mt-2">{t("upload.dropSub")}</p>
-                      </div>
+                      <>
+                        {t("upload.convert")}
+                        <ChevronRight className="w-6 h-6" />
+                      </>
                     )}
-                  </label>
+                  </button>
                 </div>
               </div>
+            </section>
 
-              {/* 转换按钮 */}
-              <button
-                onClick={handleConvert}
-                disabled={!file || loading}
-                className="w-full py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl font-semibold text-lg hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all flex items-center justify-center gap-3"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    {t("upload.converting")}
-                  </>
-                ) : (
-                  <>
-                    {t("upload.convert")}
-                    <ChevronRight className="w-6 h-6" />
-                  </>
-                )}
-              </button>
+            {/* How it works */}
+            <section className="bg-white/60 backdrop-blur border-y border-gray-100">
+              <div className="max-w-5xl mx-auto px-6 py-20">
+                <div className="text-center mb-14">
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">
+                    {t("how.title")}
+                  </h3>
+                  <p className="text-gray-500">{t("how.subtitle")}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {[
+                    {
+                      step: "01",
+                      icon: Upload,
+                      title: t("how.upload"),
+                      desc: t("how.uploadDesc"),
+                      color: "from-blue-500 to-blue-600",
+                    },
+                    {
+                      step: "02",
+                      icon: Sparkles,
+                      title: t("how.convert"),
+                      desc: t("how.convertDesc"),
+                      color: "from-purple-500 to-purple-600",
+                    },
+                    {
+                      step: "03",
+                      icon: Download,
+                      title: t("how.download"),
+                      desc: t("how.downloadDesc"),
+                      color: "from-pink-500 to-pink-600",
+                    },
+                  ].map((item) => (
+                    <div key={item.step} className="relative text-center group">
+                      <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br shadow-lg flex items-center justify-center">
+                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg`}>
+                          <item.icon className="w-7 h-7 text-white" />
+                        </div>
+                      </div>
+                      <div className="inline-block px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-400 mb-3">
+                        STEP {item.step}
+                      </div>
+                      <h4 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h4>
+                      <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
 
-              <PricingSection />
-            </div>
-          </div>
+            {/* Features */}
+            <section className="bg-gradient-to-b from-white/40 to-slate-50">
+              <div className="max-w-5xl mx-auto px-6 py-20">
+                <div className="text-center mb-14">
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">
+                    {t("features.title")}
+                  </h3>
+                  <p className="text-gray-500">{t("features.subtitle")}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    {
+                      icon: Type,
+                      title: t("features.markdown"),
+                      desc: t("features.markdownDesc"),
+                      gradient: "from-blue-500 to-cyan-500",
+                      bg: "bg-blue-50",
+                    },
+                    {
+                      icon: LayoutGrid,
+                      title: t("features.preview"),
+                      desc: t("features.previewDesc"),
+                      gradient: "from-purple-500 to-violet-500",
+                      bg: "bg-purple-50",
+                    },
+                    {
+                      icon: Lock,
+                      title: t("features.fast"),
+                      desc: t("features.fastDesc"),
+                      gradient: "from-pink-500 to-rose-500",
+                      bg: "bg-pink-50",
+                    },
+                  ].map((feature) => (
+                    <div key={feature.title} className={`${feature.bg} border border-gray-100 rounded-2xl p-7 hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}>
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-5 shadow-md`}>
+                        <feature.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h4 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h4>
+                      <p className="text-sm text-gray-500 leading-relaxed">{feature.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Pricing */}
+            <section className="bg-white/60 backdrop-blur border-t border-gray-100">
+              <div className="max-w-5xl mx-auto px-6 py-20">
+                <PricingSection />
+              </div>
+            </section>
+          </>
         ) : (
           /* 双栏对照界面 */
           <div className="flex-1 flex">
@@ -530,6 +679,8 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {!markdown && <Footer />}
     </div>
   );
 }
