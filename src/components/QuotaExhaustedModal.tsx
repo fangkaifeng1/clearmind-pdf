@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Zap, LogIn, Crown } from "lucide-react";
+import { X, Zap, LogIn } from "lucide-react";
 import { QuotaInfo } from "@/lib/quota";
 import { useI18n } from "@/lib/i18n";
 
@@ -42,7 +42,7 @@ export default function QuotaExhaustedModal({
           {quota.plan === "ANONYMOUS" && (
             <button
               onClick={onSignIn}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-teal-700 text-white rounded-xl hover:bg-teal-800 transition-colors font-medium"
             >
               <LogIn className="w-4 h-4" />
               {t("quota.signIn")}
@@ -52,8 +52,7 @@ export default function QuotaExhaustedModal({
             onClick={onClose}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
-            <Crown className="w-4 h-4" />
-            {t("quota.upgrade")}
+            {t("quota.gotIt")}
           </button>
         </div>
       </div>

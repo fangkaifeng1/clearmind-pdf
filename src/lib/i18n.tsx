@@ -68,7 +68,7 @@ const translations: Record<Lang, Record<string, string>> = {
     "pricing.month": "month",
     "pricing.freeCredits": "1 credit / day",
     "pricing.signedInCredits": "2 credits / day",
-    "pricing.proCredits": "10 credits / day",
+    "pricing.proCredits": "50 credits / day",
     "pricing.freeF1": "Basic PDF conversion",
     "pricing.freeF2": "Markdown output with frontmatter",
     "pricing.freeF3": "Side-by-side preview",
@@ -78,9 +78,11 @@ const translations: Record<Lang, Record<string, string>> = {
     "pricing.signedInF3": "Google sign-in",
     "pricing.signedInF4": "Conversion history",
     "pricing.proF1": "Everything in Signed In",
-    "pricing.proF2": "10x daily credits",
-    "pricing.proF3": "Priority processing",
-    "pricing.proF4": "Email support",
+    "pricing.proF2": "50 credits per day",
+    "pricing.proF3": "Priority processing speed",
+    "pricing.proF4": "Batch processing (up to 10 files)",
+    "pricing.proF5": "Advanced table extraction",
+    "pricing.proF6": "Priority email support",
     "pricing.getCta": "Get Started",
     "pricing.signInCta": "Sign in Free",
     "pricing.proCta": "Coming Soon",
@@ -93,9 +95,9 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Quota modal
     "quota.title": "Daily credits exhausted",
-    "quota.desc": "You've used all {limit} of your daily credits. Sign in to get more, or upgrade to Pro for 10 credits per day.",
+    "quota.desc": "You've used all {limit} of your daily credits. Sign in to get more daily credits.",
     "quota.signIn": "Sign in for more credits",
-    "quota.upgrade": "Upgrade to Pro (Coming Soon)",
+    "quota.gotIt": "Got it",
 
     // Result view
     "result.pdfOriginal": "PDF Original",
@@ -141,6 +143,48 @@ const translations: Record<Lang, Record<string, string>> = {
     "login_required": "Please sign in first",
     "convert_failed": "Conversion failed",
     "server_error": "Server error ({status})",
+
+    // Use cases
+    "usecases.title": "Built for the tools you already love",
+    "usecases.subtitle": "Seamlessly integrate with your favorite knowledge management workflow",
+    "usecases.obsidian": "Obsidian",
+    "usecases.obsidianDesc": "Paste converted Markdown directly into your vault. Preserves headings, links, and structure.",
+    "usecases.notion": "Notion",
+    "usecases.notionDesc": "Import clean Markdown that Notion understands. Tables, lists, and formatting intact.",
+    "usecases.ai": "AI Workflows",
+    "usecases.aiDesc": "Feed structured text to ChatGPT, Claude, or any LLM for summarization and analysis.",
+    "usecases.research": "Research Papers",
+    "usecases.researchDesc": "Convert academic PDFs to searchable, editable Markdown for notes and citations.",
+
+    // Stats / social proof
+    "stats.conversions": "PDFs Converted",
+    "stats.users": "Active Users",
+    "stats.accuracy": "Format Accuracy",
+    "stats.uptime": "Uptime",
+
+    // Testimonials
+    "testimonials.title": "Loved by knowledge workers",
+    "testimonials.subtitle": "See what people are saying about ClearMind PDF",
+    "testimonials.1.text": "Finally a PDF converter that actually preserves the structure. My Obsidian vault has never been more organized.",
+    "testimonials.1.name": "Sarah Chen",
+    "testimonials.1.role": "Research Scientist",
+    "testimonials.2.text": "I convert dozens of research papers daily. ClearMind saves me hours of manual formatting every week.",
+    "testimonials.2.name": "Marcus Rivera",
+    "testimonials.2.role": "PhD Student",
+    "testimonials.3.text": "The side-by-side preview is brilliant. I can instantly verify the conversion quality before exporting.",
+    "testimonials.3.name": "Emily Zhang",
+    "testimonials.3.role": "Technical Writer",
+
+    // CTA section
+    "cta.title": "Ready to transform your PDFs?",
+    "cta.subtitle": "Start converting for free. No credit card required. No files stored.",
+    "cta.button": "Get Started Free",
+
+    // Features extended
+    "features.batch": "Batch Processing",
+    "features.batchDesc": "Convert multiple PDFs at once with queue management and progress tracking.",
+    "features.tables": "Table Extraction",
+    "features.tablesDesc": "Preserves complex table structures including merged cells, headers, and nested data.",
   },
   zh: {
     // Header
@@ -208,7 +252,7 @@ const translations: Record<Lang, Record<string, string>> = {
     "pricing.month": "月",
     "pricing.freeCredits": "1 次额度 / 天",
     "pricing.signedInCredits": "2 次额度 / 天",
-    "pricing.proCredits": "10 次额度 / 天",
+    "pricing.proCredits": "50 次额度 / 天",
     "pricing.freeF1": "基础 PDF 转换",
     "pricing.freeF2": "含 Frontmatter 的 Markdown 输出",
     "pricing.freeF3": "左右对照预览",
@@ -218,9 +262,11 @@ const translations: Record<Lang, Record<string, string>> = {
     "pricing.signedInF3": "Google 登录",
     "pricing.signedInF4": "转换历史记录",
     "pricing.proF1": "包含登录版所有功能",
-    "pricing.proF2": "每日 10 倍额度",
-    "pricing.proF3": "优先处理",
-    "pricing.proF4": "邮件支持",
+    "pricing.proF2": "每日 50 次额度",
+    "pricing.proF3": "优先处理速度",
+    "pricing.proF4": "批量处理（最多 10 个文件）",
+    "pricing.proF5": "高级表格提取",
+    "pricing.proF6": "优先邮件支持",
     "pricing.getCta": "开始使用",
     "pricing.signInCta": "免费登录",
     "pricing.proCta": "即将推出",
@@ -233,9 +279,9 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Quota modal
     "quota.title": "今日额度已用完",
-    "quota.desc": "你已用完今日 {limit} 次额度。登录即可获取更多，或升级为专业版享受每日 10 次额度。",
+    "quota.desc": "你已用完今日 {limit} 次额度。登录即可获取更多每日额度。",
     "quota.signIn": "登录获取更多额度",
-    "quota.upgrade": "升级为专业版（即将推出）",
+    "quota.gotIt": "知道了",
 
     // Result view
     "result.pdfOriginal": "PDF 原文",
@@ -274,6 +320,48 @@ const translations: Record<Lang, Record<string, string>> = {
     "toast.convertFailed": "转换失败",
     "toast.backendDown": "转换失败，请检查后端服务是否运行。",
     "toast.success": "转换成功！",
+
+    // Use cases
+    "usecases.title": "为你常用的工具而生",
+    "usecases.subtitle": "无缝融入你的知识管理工作流",
+    "usecases.obsidian": "Obsidian",
+    "usecases.obsidianDesc": "将转换后的 Markdown 直接粘贴到你的笔记库。标题、链接、结构完美保留。",
+    "usecases.notion": "Notion",
+    "usecases.notionDesc": "导入 Notion 可识别的整洁 Markdown。表格、列表和格式完整无缺。",
+    "usecases.ai": "AI 工作流",
+    "usecases.aiDesc": "将结构化文本直接输入 ChatGPT、Claude 等大模型进行摘要和分析。",
+    "usecases.research": "研究论文",
+    "usecases.researchDesc": "将学术论文 PDF 转换为可搜索、可编辑的 Markdown 笔记和引用。",
+
+    // Stats / social proof
+    "stats.conversions": "PDF 已转换",
+    "stats.users": "活跃用户",
+    "stats.accuracy": "格式准确率",
+    "stats.uptime": "在线率",
+
+    // Testimonials
+    "testimonials.title": "深受知识工作者喜爱",
+    "testimonials.subtitle": "听听用户怎么说",
+    "testimonials.1.text": "终于有一款能真正保留结构的 PDF 转换器了。我的 Obsidian 笔记库从没这么整洁过。",
+    "testimonials.1.name": "Sarah Chen",
+    "testimonials.1.role": "研究科学家",
+    "testimonials.2.text": "我每天转换几十篇研究论文，ClearMind 每周帮我节省数小时的手动排版时间。",
+    "testimonials.2.name": "Marcus Rivera",
+    "testimonials.2.role": "博士生",
+    "testimonials.3.text": "左右对照预览功能太棒了，可以即时验证转换质量再导出。",
+    "testimonials.3.name": "Emily Zhang",
+    "testimonials.3.role": "技术写作工程师",
+
+    // CTA section
+    "cta.title": "准备好转换你的 PDF 了吗？",
+    "cta.subtitle": "免费开始转换，无需信用卡，文件绝不留存。",
+    "cta.button": "免费开始",
+
+    // Features extended
+    "features.batch": "批量处理",
+    "features.batchDesc": "一次转换多个 PDF，支持队列管理和进度追踪。",
+    "features.tables": "表格提取",
+    "features.tablesDesc": "保留复杂表格结构，包括合并单元格、表头和嵌套数据。",
   },
 };
 

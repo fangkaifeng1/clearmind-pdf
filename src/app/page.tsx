@@ -19,12 +19,13 @@ import {
   Zap,
   Monitor,
   Trash2,
-  ArrowRight,
   FileOutput,
   Type,
   LayoutGrid,
   Lock,
-  Clock
+  Clock,
+  BookOpen,
+  Table2
 } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
 import { authFetch, getToken, loginWithGoogle } from "@/lib/auth";
@@ -33,7 +34,6 @@ import LanguageToggle from "@/components/LanguageToggle";
 import CreditsDisplay from "@/components/CreditsDisplay";
 import QuotaExhaustedModal from "@/components/QuotaExhaustedModal";
 import PricingSection from "@/components/PricingSection";
-import Footer from "@/components/Footer";
 import { getClientId, fetchQuota, QuotaInfo } from "@/lib/quota";
 import { ToastProvider, useToast } from "@/components/Toast";
 
@@ -41,10 +41,15 @@ import { ToastProvider, useToast } from "@/components/Toast";
 let pdfjsLibCache: any = null;
 async function getPdfjsLib() {
   if (pdfjsLibCache) return pdfjsLibCache;
-  const lib = await import("pdfjs-dist");
-  lib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-  pdfjsLibCache = lib;
-  return lib;
+  try {
+    const lib = await import("pdfjs-dist");
+    lib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+    pdfjsLibCache = lib;
+    return lib;
+  } catch (error) {
+    console.error("Failed to load pdfjs-dist:", error);
+    throw new Error("PDF library failed to load");
+  }
 }
 
 export default function Home() {
@@ -315,7 +320,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-teal-50/30">
       {showQuotaModal && quota && (
         <QuotaExhaustedModal
           quota={quota}
@@ -338,13 +343,13 @@ export default function Home() {
             )}
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+                <div className="w-12 h-12 bg-gradient-to-br from-teal-700 via-cyan-700 to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-700/30">
                   <Brain className="w-7 h-7 text-white" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-800 to-cyan-700 bg-clip-text text-transparent">
                   ClearMind PDF
                 </h1>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -360,7 +365,7 @@ export default function Home() {
               <>
                 <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium"
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-700 to-cyan-700 text-white rounded-xl hover:shadow-lg hover:shadow-teal-700/30 transition-all font-medium"
               >
                 <Download className="w-4 h-4" />
                 {t("header.download")} .md
@@ -393,55 +398,61 @@ export default function Home() {
         {!markdown ? (
           /* 上传界面 - Landing Page */
           <>
-            {/* Hero Section */}
-            <section className="relative overflow-hidden">
-              {/* Background decoration */}
+            {/* Hero Section - Generous whitespace, breathing room */}
+            <section className="relative overflow-hidden noise-overlay">
+              {/* Animated background blobs */}
               <div className="absolute inset-0 -z-10">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/20 to-purple-100/20 rounded-full blur-3xl"></div>
+                <div className="absolute top-20 left-[10%] w-[500px] h-[500px] bg-teal-200/40 rounded-full blur-[120px] animate-float"></div>
+                <div className="absolute bottom-20 right-[10%] w-[400px] h-[400px] bg-cyan-200/40 rounded-full blur-[100px] animate-float-delayed"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-r from-teal-100/40 to-cyan-100/40 rounded-full blur-[120px]"></div>
               </div>
 
-              <div className="max-w-4xl mx-auto px-6 pt-20 pb-16">
-                <div className="text-center mb-10">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100/80 text-blue-700 rounded-full text-sm font-medium mb-6 backdrop-blur">
+              <div className="max-w-4xl mx-auto px-6 pt-28 pb-24">
+                {/* Badge */}
+                <div className="text-center mb-8 animate-fade-up">
+                  <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 text-teal-800 rounded-full text-sm font-medium backdrop-blur border border-teal-200/60 shadow-sm">
                     <Sparkles className="w-4 h-4" />
                     {t("hero.badge")}
                   </div>
-                  <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-5 leading-tight tracking-tight">
-                    {t("hero.title1")}<br />
-                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                </div>
+
+                {/* Title */}
+                <div className="text-center mb-8 animate-fade-up" style={{ animationDelay: '100ms' }}>
+                  <h2 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 leading-[1.1] tracking-tight">
+                    {t("hero.title1")}
+                    <br />
+                    <span className="bg-gradient-to-r from-teal-800 via-cyan-700 to-emerald-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%]">
                       {t("hero.title2")}
                     </span>
                   </h2>
-                  <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
+                  <p className="text-gray-400 text-xl max-w-2xl mx-auto leading-relaxed font-light">
                     {t("hero.desc")}
                   </p>
                 </div>
 
                 {/* Trust badges */}
-                <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
+                <div className="flex flex-wrap items-center justify-center gap-3 mb-14 animate-fade-up" style={{ animationDelay: '200ms' }}>
                   {[
                     { icon: Shield, label: t("trust.secure") },
                     { icon: Clock, label: t("trust.seconds") },
                     { icon: Monitor, label: t("trust.device") },
                     { icon: Trash2, label: t("trust.storage") },
                   ].map((badge) => (
-                    <div key={badge.label} className="flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur border border-gray-100 rounded-full text-xs font-medium text-gray-600">
-                      <badge.icon className="w-3.5 h-3.5 text-blue-500" />
+                    <div key={badge.label} className="flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur border border-gray-100/80 rounded-full text-xs font-medium text-gray-500">
+                      <badge.icon className="w-3.5 h-3.5 text-teal-600" />
                       {badge.label}
                     </div>
                   ))}
                 </div>
 
                 {/* Upload area */}
-                <div className="relative mb-6 max-w-2xl mx-auto">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur-xl opacity-20"></div>
+                <div className="relative mb-8 max-w-2xl mx-auto animate-scale-in" style={{ animationDelay: '300ms' }}>
+                  <div className="absolute inset-0 bg-gradient-to-r from-teal-600/20 via-cyan-600/20 to-emerald-600/20 rounded-3xl blur-2xl"></div>
                   <div
-                    className={`relative border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer backdrop-blur ${
+                    className={`relative border-2 border-dashed rounded-3xl p-16 text-center transition-all duration-300 cursor-pointer backdrop-blur-sm ${
                       isDragging
-                        ? "border-blue-500 bg-blue-50/70 ring-4 ring-blue-200"
-                        : "border-gray-300 hover:border-blue-400 hover:bg-white/50 bg-white/70"
+                        ? "border-teal-500 bg-teal-50/70 ring-4 ring-teal-300/50 scale-[1.02]"
+                        : "border-gray-200/80 hover:border-teal-400 hover:bg-white/60 bg-white/50"
                     }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -455,24 +466,24 @@ export default function Home() {
                       id="file-upload"
                     />
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                        <Upload className="w-10 h-10 text-blue-500" />
+                      <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-teal-100 to-cyan-100 border border-gray-100/50 flex items-center justify-center">
+                        <Upload className="w-10 h-10 text-teal-600" />
                       </div>
                       {file ? (
-                        <div className="space-y-2">
-                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-xl font-medium">
+                        <div className="space-y-3">
+                          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-2xl font-medium border border-emerald-100">
                             <CheckCircle className="w-5 h-5" />
                             {file.name}
                           </div>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-400">
                             {(file.size / 1024).toFixed(1)} KB
                           </p>
                         </div>
                       ) : (
                         <div>
-                          <span className="text-xl font-medium text-gray-700">{t("upload.drop")}</span>
-                          <p className="text-gray-400 mt-2">{t("upload.dropSub")}</p>
-                          <p className="text-xs text-gray-300 mt-3">{t("upload.formats")}</p>
+                          <span className="text-xl font-medium text-gray-600">{t("upload.drop")}</span>
+                          <p className="text-gray-300 mt-3 text-base">{t("upload.dropSub")}</p>
+                          <p className="text-xs text-gray-300/80 mt-4 tracking-wide uppercase">{t("upload.formats")}</p>
                         </div>
                       )}
                     </label>
@@ -480,12 +491,13 @@ export default function Home() {
                 </div>
 
                 {/* Convert button */}
-                <div className="max-w-2xl mx-auto mb-6">
+                <div className="max-w-2xl mx-auto mb-8 animate-fade-up" style={{ animationDelay: '400ms' }}>
                   <button
                     onClick={handleConvert}
                     disabled={!file || loading}
-                    className="w-full py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl font-semibold text-lg hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all flex items-center justify-center gap-3"
+                    className="group w-full py-5 bg-gradient-to-r from-teal-700 via-cyan-700 to-emerald-600 text-white rounded-2xl font-semibold text-lg hover:shadow-2xl hover:shadow-teal-700/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden"
                   >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                     {loading ? (
                       <>
                         <Loader2 className="w-6 h-6 animate-spin" />
@@ -494,7 +506,7 @@ export default function Home() {
                     ) : (
                       <>
                         {t("upload.convert")}
-                        <ChevronRight className="w-6 h-6" />
+                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </button>
@@ -502,95 +514,199 @@ export default function Home() {
               </div>
             </section>
 
-            {/* How it works */}
-            <section className="bg-white/60 backdrop-blur border-y border-gray-100">
-              <div className="max-w-5xl mx-auto px-6 py-20">
-                <div className="text-center mb-14">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">
-                    {t("how.title")}
-                  </h3>
-                  <p className="text-gray-500">{t("how.subtitle")}</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Stats bar */}
+            <section className="relative border-y border-gray-100/80 bg-white/40 backdrop-blur-sm">
+              <div className="max-w-5xl mx-auto px-6 py-14">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                   {[
-                    {
-                      step: "01",
-                      icon: Upload,
-                      title: t("how.upload"),
-                      desc: t("how.uploadDesc"),
-                      color: "from-blue-500 to-blue-600",
-                    },
-                    {
-                      step: "02",
-                      icon: Sparkles,
-                      title: t("how.convert"),
-                      desc: t("how.convertDesc"),
-                      color: "from-purple-500 to-purple-600",
-                    },
-                    {
-                      step: "03",
-                      icon: Download,
-                      title: t("how.download"),
-                      desc: t("how.downloadDesc"),
-                      color: "from-pink-500 to-pink-600",
-                    },
-                  ].map((item) => (
-                    <div key={item.step} className="relative text-center group">
-                      <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br shadow-lg flex items-center justify-center">
-                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg`}>
-                          <item.icon className="w-7 h-7 text-white" />
-                        </div>
+                    { value: "10K+", label: t("stats.conversions") },
+                    { value: "2K+", label: t("stats.users") },
+                    { value: "98%", label: t("stats.accuracy") },
+                    { value: "99.9%", label: t("stats.uptime") },
+                  ].map((stat, i) => (
+                    <div key={stat.label} className="text-center">
+                      <div className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+                        {stat.value}
                       </div>
-                      <div className="inline-block px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-400 mb-3">
-                        STEP {item.step}
-                      </div>
-                      <h4 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                      <div className="text-sm text-gray-400 font-medium">{stat.label}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
 
-            {/* Features */}
-            <section className="bg-gradient-to-b from-white/40 to-slate-50">
-              <div className="max-w-5xl mx-auto px-6 py-20">
-                <div className="text-center mb-14">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">
+            {/* How it works - More vertical space */}
+            <section className="relative">
+              <div className="max-w-5xl mx-auto px-6 py-28">
+                <div className="text-center mb-20">
+                  <div className="inline-block px-4 py-1.5 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold tracking-wider uppercase mb-5">
+                    {t("how.title")}
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                    {t("how.subtitle")}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
+                  {[
+                    {
+                      step: "01",
+                      icon: Upload,
+                      title: t("how.upload"),
+                      desc: t("how.uploadDesc"),
+                      color: "from-teal-700 to-teal-800",
+                      ring: "ring-teal-100",
+                    },
+                    {
+                      step: "02",
+                      icon: Sparkles,
+                      title: t("how.convert"),
+                      desc: t("how.convertDesc"),
+                      color: "from-cyan-700 to-teal-700",
+                      ring: "ring-cyan-100",
+                    },
+                    {
+                      step: "03",
+                      icon: Download,
+                      title: t("how.download"),
+                      desc: t("how.downloadDesc"),
+                      color: "from-emerald-700 to-teal-600",
+                      ring: "ring-emerald-100",
+                    },
+                  ].map((item) => (
+                    <div key={item.step} className="relative text-center group">
+                      {/* Connector line (hidden on mobile) */}
+                      <div className="hidden md:block absolute top-8 left-[60%] w-[80%] border-t-2 border-dashed border-gray-200/60"></div>
+
+                      <div className={`w-20 h-20 mx-auto mb-8 rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-xl shadow-gray-200/50 ring-8 ${item.ring} group-hover:scale-110 transition-transform duration-300`}>
+                        <item.icon className="w-9 h-9 text-white" />
+                      </div>
+                      <div className="inline-block px-4 py-1.5 bg-gray-50 rounded-full text-xs font-bold text-gray-400 mb-4 tracking-wider">
+                        STEP {item.step}
+                      </div>
+                      <h4 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h4>
+                      <p className="text-base text-gray-400 leading-relaxed max-w-[250px] mx-auto">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Features - Expanded to 5 cards, more spacing */}
+            <section className="relative noise-overlay">
+              <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-50/80 to-white/0"></div>
+              <div className="max-w-6xl mx-auto px-6 py-28">
+                <div className="text-center mb-20">
+                  <div className="inline-block px-4 py-1.5 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold tracking-wider uppercase mb-5">
+                    Features
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
                     {t("features.title")}
                   </h3>
-                  <p className="text-gray-500">{t("features.subtitle")}</p>
+                  <p className="text-gray-400 text-lg">{t("features.subtitle")}</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {[
                     {
                       icon: Type,
                       title: t("features.markdown"),
                       desc: t("features.markdownDesc"),
-                      gradient: "from-blue-500 to-cyan-500",
-                      bg: "bg-blue-50",
+                      gradient: "from-teal-700 to-cyan-600",
                     },
                     {
                       icon: LayoutGrid,
                       title: t("features.preview"),
                       desc: t("features.previewDesc"),
-                      gradient: "from-purple-500 to-violet-500",
-                      bg: "bg-purple-50",
+                      gradient: "from-cyan-700 to-teal-600",
                     },
                     {
                       icon: Lock,
                       title: t("features.fast"),
                       desc: t("features.fastDesc"),
-                      gradient: "from-pink-500 to-rose-500",
-                      bg: "bg-pink-50",
+                      gradient: "from-emerald-700 to-teal-600",
+                    },
+                    {
+                      icon: Table2,
+                      title: t("features.tables"),
+                      desc: t("features.tablesDesc"),
+                      gradient: "from-amber-500 to-orange-500",
+                    },
+                    {
+                      icon: FileOutput,
+                      title: t("features.batch"),
+                      desc: t("features.batchDesc"),
+                      gradient: "from-teal-500 to-emerald-500",
                     },
                   ].map((feature) => (
-                    <div key={feature.title} className={`${feature.bg} border border-gray-100 rounded-2xl p-7 hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}>
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-5 shadow-md`}>
-                        <feature.icon className="w-6 h-6 text-white" />
+                    <div key={feature.title} className="group bg-white border border-gray-100/80 rounded-3xl p-8 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-2 transition-all duration-500 glow-hover border-gradient">
+                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-7 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        <feature.icon className="w-7 h-7 text-white" />
                       </div>
-                      <h4 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">{feature.desc}</p>
+                      <h4 className="text-lg font-bold text-gray-900 mb-3">{feature.title}</h4>
+                      <p className="text-sm text-gray-400 leading-relaxed">{feature.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Use Cases */}
+            <section className="relative overflow-hidden">
+              <div className="absolute inset-0 -z-10">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-teal-100/50 to-cyan-100/50 rounded-full blur-[100px]"></div>
+              </div>
+              <div className="max-w-5xl mx-auto px-6 py-28">
+                <div className="text-center mb-20">
+                  <div className="inline-block px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-semibold tracking-wider uppercase mb-5">
+                    Integrations
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                    {t("usecases.title")}
+                  </h3>
+                  <p className="text-gray-400 text-lg">{t("usecases.subtitle")}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {[
+                    {
+                      icon: BookOpen,
+                      title: t("usecases.obsidian"),
+                      desc: t("usecases.obsidianDesc"),
+                      gradient: "from-teal-700 to-cyan-700",
+                      iconBg: "bg-teal-100",
+                      iconColor: "text-teal-700",
+                    },
+                    {
+                      icon: LayoutGrid,
+                      title: t("usecases.notion"),
+                      desc: t("usecases.notionDesc"),
+                      gradient: "from-gray-800 to-gray-900",
+                      iconBg: "bg-gray-100",
+                      iconColor: "text-gray-700",
+                    },
+                    {
+                      icon: Sparkles,
+                      title: t("usecases.ai"),
+                      desc: t("usecases.aiDesc"),
+                      gradient: "from-cyan-700 to-teal-600",
+                      iconBg: "bg-cyan-100",
+                      iconColor: "text-cyan-700",
+                    },
+                    {
+                      icon: FileText,
+                      title: t("usecases.research"),
+                      desc: t("usecases.researchDesc"),
+                      gradient: "from-emerald-500 to-teal-500",
+                      iconBg: "bg-emerald-50",
+                      iconColor: "text-emerald-500",
+                    },
+                  ].map((usecase) => (
+                    <div key={usecase.title} className="group flex items-start gap-6 bg-white/60 backdrop-blur border border-gray-100/60 rounded-3xl p-8 hover:bg-white/80 hover:shadow-lg transition-all duration-300">
+                      <div className={`flex-shrink-0 w-14 h-14 rounded-2xl ${usecase.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                        <usecase.icon className={`w-7 h-7 ${usecase.iconColor}`} />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-gray-900 mb-2">{usecase.title}</h4>
+                        <p className="text-sm text-gray-400 leading-relaxed">{usecase.desc}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -598,11 +714,12 @@ export default function Home() {
             </section>
 
             {/* Pricing */}
-            <section className="bg-white/60 backdrop-blur border-t border-gray-100">
-              <div className="max-w-5xl mx-auto px-6 py-20">
+            <section className="relative">
+              <div className="max-w-6xl mx-auto px-6 py-28">
                 <PricingSection />
               </div>
             </section>
+
           </>
         ) : (
           /* 双栏对照界面 */
@@ -680,7 +797,6 @@ export default function Home() {
         )}
       </main>
 
-      {!markdown && <Footer />}
     </div>
   );
 }

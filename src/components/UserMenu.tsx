@@ -74,7 +74,7 @@ export default function UserMenu() {
         {user.picture ? (
           <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
         ) : (
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white">
+          <div className="w-8 h-8 bg-gradient-to-br from-teal-700 to-cyan-700 rounded-full flex items-center justify-center text-white">
             <User className="w-5 h-5" />
           </div>
         )}
