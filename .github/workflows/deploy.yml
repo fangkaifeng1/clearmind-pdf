@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers
+name: Deploy to Cloudflare Pages
 
 on:
   push:
@@ -26,9 +26,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to Cloudflare Workers
+      - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 0ca97cf53875e28c4e6dde4615170213
           command: pages deploy out --project-name=clearmind-pdf
+          wranglerVersion: '3'
