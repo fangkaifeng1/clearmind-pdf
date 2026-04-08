@@ -31,7 +31,7 @@ const translations: Record<Lang, Record<string, string>> = {
     // Upload
     "upload.drop": "Drop your PDF here, or",
     "upload.browse": "browse",
-    "upload.formats": "Supports PDF, DOCX, PPTX, XLSX",
+    "upload.formats": "Supports PDF",
     "upload.selected": "Click to change",
     "upload.convert": "Convert to Markdown",
     "upload.converting": "Converting...",
@@ -210,7 +210,7 @@ const translations: Record<Lang, Record<string, string>> = {
     // Upload
     "upload.drop": "将 PDF 拖拽到此处，或",
     "upload.browse": "点击上传",
-    "upload.formats": "支持 PDF、DOCX、PPTX、XLSX",
+    "upload.formats": "支持 PDF",
     "upload.selected": "点击更换文件",
     "upload.convert": "转换为 Markdown",
     "upload.converting": "正在转换...",
