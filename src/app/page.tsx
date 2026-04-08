@@ -213,16 +213,6 @@ export default function Home() {
       return;
     }
 
-    // 检查是否已登录
-    const token = getToken();
-    if (!token) {
-      showToast(t("login_required"), "error");
-      setTimeout(() => {
-        loginWithGoogle();
-      }, 1500);
-      return;
-    }
-    
     setLoading(true);
     setUploadedFileName(file.name);
     
