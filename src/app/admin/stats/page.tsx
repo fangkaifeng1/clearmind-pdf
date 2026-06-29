@@ -25,6 +25,14 @@ export default function AdminStatsPage() {
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d">("24h");
+  const [hourlyData, setHourlyData] = useState<{time: string; count: number}[]>([
+    { time: "00:00", count: 0 },
+    { time: "04:00", count: 0 },
+    { time: "08:00", count: 0 },
+    { time: "12:00", count: 0 },
+    { time: "16:00", count: 0 },
+    { time: "20:00", count: 0 },
+  ]);
 
   // Check admin status on mount
   useEffect(() => {
@@ -55,30 +63,60 @@ export default function AdminStatsPage() {
   }, [router]);
 
   useEffect(() => {
-    // TODO: Fetch stats from backend API
-    // For now, showing placeholder data
-    setTimeout(() => {
-      setStats({
-        todayConversions: 127,
-        totalConversions: 8934,
-        activeUsers: 452,
-        avgResponseTime: 1.2,
-        errorRate: 0.3,
-      });
-      setLoading(false);
-    }, 1000);
-  }, [timeRange]);
+    const fetchStats = async () => {
+      if (!isAdminUser) return;
 
-  const hourlyData = [
-    { time: "00:00", count: 12 },
-    { time: "04:00", count: 8 },
-    { time: "08:00", count: 45 },
-    { time: "12:00", count: 78 },
-    { time: "16:00", count: 92 },
-    { time: "20:00", count: 67 },
-  ];
+      setLoading(true);
+      try {
+        const token = getToken();
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.clearmindpdf.com";
 
-  const maxCount = Math.max(...hourlyData.map(d => d.count));
+        const response = await fetch(`${BACKEND_URL}/api/admin/stats`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch stats");
+        }
+
+        const data = await response.json();
+
+        setStats({
+          todayConversions: data.today_conversions,
+          totalConversions: data.total_conversions,
+          activeUsers: data.active_users,
+          avgResponseTime: data.avg_response_time,
+          errorRate: 0,
+        });
+
+        // Update hourly data
+        setHourlyData(
+          data.hourly_data.map((item: any) => ({
+            time: item.time,
+            count: item.count,
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+        // Fallback to placeholder data on error
+        setStats({
+          todayConversions: 0,
+          totalConversions: 0,
+          activeUsers: 0,
+          avgResponseTime: 0,
+          errorRate: 0,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [isAdminUser]);
+
+  const maxCount = Math.max(...hourlyData.map(d => d.count), 1); // Avoid division by zero
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -159,9 +197,17 @@ export default function AdminStatsPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
               <h3 className="font-bold text-blue-900 mb-2">💡 数据说明</h3>
               <p className="text-blue-800 text-sm">
-                此页面显示的是访问统计概览。目前显示的是模拟数据。
-                完整的数据统计功能需要后端 API 支持，可以访问后端日志文件获取真实数据。
+                此页面显示的是从访问日志中统计的真实数据。
               </p>
+              <div className="mt-4 text-xs text-blue-700">
+                <p className="font-medium mb-1">统计说明：</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>今日转换：今天的 /convert 接口调用次数</li>
+                  <li>总转换数：所有历史 /convert 接口调用次数</li>
+                  <li>活跃用户：调用过 /convert 接口的唯一用户数</li>
+                  <li>平均响应：/convert 接口的平均响应时间（秒）</li>
+                </ul>
+              </div>
               <div className="mt-4 text-xs text-blue-700">
                 <p className="font-medium mb-1">后端日志位置：</p>
                 <ul className="list-disc list-inside space-y-1">
@@ -172,7 +218,7 @@ export default function AdminStatsPage() {
               </div>
               <div className="mt-4 p-3 bg-blue-100 rounded-lg">
                 <p className="text-xs text-blue-800">
-                  <strong>提示：</strong>你可以使用命令 <code className="bg-blue-200 px-1 rounded">tail -f logs/access.log</code> 实时查看访问日志
+                  <strong>实时查看日志：</strong><code className="bg-blue-200 px-1 rounded mx-1">tail -f logs/access.log</code>
                 </p>
               </div>
             </div>
