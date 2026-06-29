@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { isAdmin, getToken } from "@/lib/auth";
 
 interface Stats {
   todayConversions: number;
@@ -11,6 +13,7 @@ interface Stats {
 }
 
 export default function AdminStatsPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats>({
     todayConversions: 0,
     totalConversions: 0,
@@ -19,7 +22,37 @@ export default function AdminStatsPage() {
     errorRate: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d">("24h");
+
+  // Check admin status on mount
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      setCheckingAdmin(true);
+
+      // Check if user is logged in
+      const token = getToken();
+      if (!token) {
+        // Not logged in, redirect to home
+        router.push("/");
+        return;
+      }
+
+      // Check if user is admin
+      const adminStatus = await isAdmin();
+      if (!adminStatus) {
+        // Not admin, redirect to home
+        router.push("/");
+        return;
+      }
+
+      setIsAdminUser(true);
+      setCheckingAdmin(false);
+    };
+
+    checkAdminStatus();
+  }, [router]);
 
   useEffect(() => {
     // TODO: Fetch stats from backend API
@@ -56,24 +89,13 @@ export default function AdminStatsPage() {
           <p className="text-gray-600">查看网站访问数据和转换统计</p>
         </div>
 
-        {/* Time Range Selector */}
-        <div className="mb-6 flex gap-2">
-          {(["24h", "7d", "30d"] as const).map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                timeRange === range
-                  ? "bg-teal-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              }`}
-            >
-              {range === "24h" ? "24小时" : range === "7d" ? "7天" : "30天"}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
+        {/* Checking Admin Status */}
+        {checkingAdmin ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+            <p className="mt-4 text-gray-600">验证权限中...</p>
+          </div>
+        ) : loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
             <p className="mt-4 text-gray-600">加载中...</p>

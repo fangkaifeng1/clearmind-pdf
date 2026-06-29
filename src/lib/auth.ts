@@ -112,3 +112,23 @@ export async function authFetch(
 
   return response;
 }
+
+// Check if current user is admin
+export async function isAdmin(): Promise<boolean> {
+  const token = getToken();
+  if (!token) return false;
+
+  try {
+    const response = await authFetch(`${BACKEND_URL}/api/admin/check`);
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.success && data.is_admin;
+  } catch (error) {
+    console.error("Failed to check admin status:", error);
+    return false;
+  }
+}
