@@ -23,10 +23,10 @@ const translations: Record<Lang, Record<string, string>> = {
     "trust.storage": "Files Not Stored",
 
     // Hero
-    "hero.badge": "Built for Obsidian, Notion & AI workflows",
-    "hero.title1": "Turn any PDF into",
-    "hero.title2": "clean, structured Markdown",
-    "hero.desc": "Upload a PDF, get perfectly formatted Markdown with headings, lists, and tables. Preview side-by-side, then export to your favorite tool.",
+    "hero.badge": "Free PDF to Markdown Converter",
+    "hero.title1": "Convert PDF to",
+    "hero.title2": "Markdown in seconds",
+    "hero.desc": "Simple tool: upload PDF, get Markdown. Perfect for Obsidian, Notion, and note-taking.",
 
     // Upload
     "upload.drop": "Drop your PDF here, or",
@@ -202,10 +202,10 @@ const translations: Record<Lang, Record<string, string>> = {
     "trust.storage": "文件不存储",
 
     // Hero
-    "hero.badge": "专为 Obsidian、Notion 和 AI 工作流打造",
-    "hero.title1": "将任意 PDF 转换为",
-    "hero.title2": "整洁、结构化的 Markdown",
-    "hero.desc": "上传 PDF，即刻获得带有标题、列表和表格的完美格式 Markdown。左右对照预览，一键导出至你喜爱的工具。",
+    "hero.badge": "免费的 PDF 转 Markdown 工具",
+    "hero.title1": "PDF 转 Markdown",
+    "hero.title2": "简单快速",
+    "hero.desc": "简单的工具：上传 PDF，获得 Markdown。适合 Obsidian、Notion 和做笔记使用。",
 
     // Upload
     "upload.drop": "将 PDF 拖拽到此处，或",

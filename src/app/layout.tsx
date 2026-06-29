@@ -57,7 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <meta name="google-site-verification" content="your-google-verification-code" />
       </head>
       <body className="antialiased bg-gray-50" suppressHydrationWarning>
